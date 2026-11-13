@@ -67,6 +67,8 @@
     gudang: '55022',
     petugas: 'YONO',
     deviceId: 'PDT-01',
+    gudangAsal: '55022',
+    gudangTerima: '55022',
     binAsal: 'A-001-1-001',
     binTujuan: 'A-001-2-001',
     activeLocTarget: 'asal', // 'asal' or 'tujuan'
@@ -80,9 +82,16 @@
   let html5QrCode = null;
 
   // --- DOM Elements ---
-  const elInputGudang = document.getElementById('inputGudang');
-  const elSuggestGudang = document.getElementById('suggestGudang');
-  const elBadgeGudang = document.getElementById('badgeGudangVerified');
+  const elInputLokAsal = document.getElementById('inputLokAsal');
+  const elSuggestLokAsal = document.getElementById('suggestLokAsal');
+  const elBadgeLokAsal = document.getElementById('badgeLokAsal');
+  const elInputLokTerima = document.getElementById('inputLokTerima');
+  const elSuggestLokTerima = document.getElementById('suggestLokTerima');
+  const elBadgeLokTerima = document.getElementById('badgeLokTerima');
+  // Fallbacks
+  const elInputGudang = elInputLokAsal;
+  const elSuggestGudang = elSuggestLokAsal;
+  const elBadgeGudang = elBadgeLokAsal;
   const elInputPetugas = document.getElementById('inputPetugas');
   const elInputDevice = document.getElementById('inputDevice');
   const elBtnToggleHeader = document.getElementById('btnToggleHeader');
@@ -197,12 +206,68 @@
   }
 
   function updateGudangBadge() {
-    const lok = findLocation(state.gudang);
-    if (lok) {
-      elBadgeGudang.textContent = `🏬 ${lok.c} - ${lok.n} (${lok.s})`;
-    } else {
-      elBadgeGudang.textContent = `📍 Kode Toko/Gudang: ${state.gudang || '-'}`;
+    const asal = findLocation(state.gudangAsal || state.gudang);
+    if (elBadgeLokAsal) {
+      elBadgeLokAsal.textContent = asal ? `🏬 ${asal.c} - ${asal.n}` : `📍 Kode: ${state.gudangAsal || '-'}`;
     }
+    const terima = findLocation(state.gudangTerima || state.gudang);
+    if (elBadgeLokTerima) {
+      elBadgeLokTerima.textContent = terima ? `🏬 ${terima.c} - ${terima.n}` : `🎯 Kode: ${state.gudangTerima || '-'}`;
+    }
+  }
+
+
+  // Setup Autocomplete Lokasi Toko/Gudang
+  function setupLocAutocomplete(inputEl, suggestEl, targetKey) {
+    if (!inputEl || !suggestEl) return;
+    inputEl.addEventListener('input', () => {
+      const q = inputEl.value.trim().toUpperCase();
+      state[targetKey] = q;
+      if (targetKey === 'gudangAsal') state.gudang = q;
+      updateGudangBadge();
+      saveSession();
+
+      if (!q || !database.lokasi) {
+        suggestEl.style.display = 'none';
+        return;
+      }
+
+      const matches = database.lokasi.filter(l =>
+        l.c.includes(q) || (l.n && l.n.toUpperCase().includes(q)) || (l.s && l.s.toUpperCase().includes(q))
+      ).slice(0, 8);
+
+      if (matches.length === 0) {
+        suggestEl.style.display = 'none';
+        return;
+      }
+
+      let html = '';
+      matches.forEach(m => {
+        html += `<div class="suggest-item select-loc-item" data-code="${m.c}" data-target="${targetKey}">
+          <strong>${escapeHtml(m.c)}</strong> - ${escapeHtml(m.n)} (${escapeHtml(m.s || '')})
+        </div>`;
+      });
+      suggestEl.innerHTML = html;
+      suggestEl.style.display = 'block';
+    });
+
+    suggestEl.addEventListener('click', (e) => {
+      const item = e.target.closest('.select-loc-item');
+      if (!item) return;
+      const code = item.getAttribute('data-code');
+      inputEl.value = code;
+      state[targetKey] = code;
+      if (targetKey === 'gudangAsal') state.gudang = code;
+      suggestEl.style.display = 'none';
+      updateGudangBadge();
+      saveSession();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!suggestEl.contains(e.target) && e.target !== inputEl) {
+        suggestEl.style.display = 'none';
+      }
+    });
   }
 
   // --- Format / Detect Bin Code ---
@@ -388,7 +453,9 @@
     const txRecord = {
       action: 'transfer',
       timestamp: timeFormatted,
-      gudang: state.gudang,
+      gudang: state.gudangAsal || state.gudang,
+      gudangAsal: state.gudangAsal || state.gudang,
+      gudangTerima: state.gudangTerima || state.gudang,
       petugas: state.petugas,
       deviceId: state.deviceId,
       rakAsal: getRackFromBin(state.binAsal),
@@ -761,7 +828,9 @@
       if (savedQueue) syncQueue = JSON.parse(savedQueue);
     } catch (e) {}
 
-    elInputGudang.value = state.gudang;
+    if (elInputLokAsal) elInputLokAsal.value = state.gudangAsal || state.gudang || '55022';
+    if (elInputLokTerima) elInputLokTerima.value = state.gudangTerima || state.gudang || '55022';
+    if (elInputGudang) elInputGudang.value = state.gudang || '55022';
     elInputPetugas.value = state.petugas;
     elInputDevice.value = state.deviceId;
     elDispBinAsal.textContent = state.binAsal;
@@ -855,17 +924,18 @@
       });
     });
 
-    // Toggle Header
-    elBtnToggleHeader.addEventListener('click', () => {
-      const isHidden = elHeaderCardBody.style.display === 'none';
-      elHeaderCardBody.style.display = isHidden ? 'block' : 'none';
-      elHeaderToggleIcon.textContent = isHidden ? '▼ Sembunyikan' : '▲ Buka Parameter';
-    });
+    // Toggle Header (Optional if present)
+    if (elBtnToggleHeader && elHeaderCardBody) {
+      elBtnToggleHeader.addEventListener('click', () => {
+        const isHidden = elHeaderCardBody.style.display === 'none';
+        elHeaderCardBody.style.display = isHidden ? 'block' : 'none';
+        if (elHeaderToggleIcon) elHeaderToggleIcon.textContent = isHidden ? '▼ Sembunyikan' : '▲ Buka Parameter';
+      });
+    }
 
     // Input changes
-    elInputGudang.addEventListener('input', () => { state.gudang = elInputGudang.value.trim(); updateGudangBadge(); saveSession(); });
-    elInputPetugas.addEventListener('input', () => { state.petugas = elInputPetugas.value.trim(); saveSession(); });
-    elInputDevice.addEventListener('input', () => { state.deviceId = elInputDevice.value.trim(); saveSession(); });
+    if (elInputPetugas) elInputPetugas.addEventListener('input', () => { state.petugas = elInputPetugas.value.trim(); saveSession(); });
+    if (elInputDevice) elInputDevice.addEventListener('input', () => { state.deviceId = elInputDevice.value.trim(); saveSession(); });
 
     // Location Cards Click
     elCardLocAsal.addEventListener('click', () => {
@@ -875,16 +945,29 @@
       openBinPicker('tujuan');
     });
 
-    // Swap Locations Button
+    // Setup Autocomplete untuk Lokasi Asal & Terima
+    setupLocAutocomplete(elInputLokAsal, elSuggestLokAsal, 'gudangAsal');
+    setupLocAutocomplete(elInputLokTerima, elSuggestLokTerima, 'gudangTerima');
+
+    // Swap Locations Button (Menukar Rak Asal & Terima, dan Toko Asal & Terima jika beda)
     elBtnSwapLocations.addEventListener('click', () => {
-      const temp = state.binAsal;
+      const tempBin = state.binAsal;
       state.binAsal = state.binTujuan;
-      state.binTujuan = temp;
+      state.binTujuan = tempBin;
       elDispBinAsal.textContent = state.binAsal;
       elDispBinTujuan.textContent = state.binTujuan;
+
+      if (state.gudangAsal !== state.gudangTerima) {
+        const tempG = state.gudangAsal;
+        state.gudangAsal = state.gudangTerima;
+        state.gudangTerima = tempG;
+        if (elInputLokAsal) elInputLokAsal.value = state.gudangAsal;
+        if (elInputLokTerima) elInputLokTerima.value = state.gudangTerima;
+      }
+      updateGudangBadge();
       saveSession();
       playBeepLoc();
-      showToast('⇄ Posisi Rak Asal & Tujuan dibalik');
+      showToast('⇄ Posisi Asal & Terima dibalik');
     });
 
     elBtnOpenBinPicker.addEventListener('click', () => {

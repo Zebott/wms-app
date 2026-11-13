@@ -50,75 +50,73 @@
 
   <main class="container">
 
-    <!-- Parameter Dokumen / Lokasi Card (Collapsible) -->
-    <div class="card" id="headerCard">
-      <div class="card-header" id="btnToggleHeader" style="cursor: pointer;">
-        <span>🏢 Parameter Toko / Gudang & Petugas</span>
-        <span id="headerToggleIcon" style="color: #0284c7; font-size: 0.76rem;">▼ Sembunyikan</span>
-      </div>
-      <div class="card-body" id="headerCardBody">
-        <div class="form-grid">
-          <div class="form-group" style="position: relative;">
-            <label>Toko / Gudang</label>
-            <input type="text" id="inputGudang" class="form-control" value="55022" placeholder="55022...">
-            <div id="suggestGudang" class="suggest-box" style="display: none;"></div>
-          </div>
-          <div class="form-group">
-            <label>Petugas (Pelaksana)</label>
-            <input type="text" id="inputPetugas" class="form-control" value="YONO" placeholder="Nama petugas...">
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>No. Device / PDT</label>
-            <input type="text" id="inputDevice" class="form-control" value="PDT-01" placeholder="PDT-01">
-          </div>
-          <div class="form-group">
-            <label>Gudang Terverifikasi</label>
-            <div id="badgeGudangVerified" style="font-size: 0.76rem; font-weight: 800; color: #0284c7; padding-top: 8px;">
-              🏬 55022 - ITX GUDANG NAROGONG
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ========================================================================= -->
     <!-- TAB 1: MUTASI / PERPINDAHAN BARANG ANTAR RAK & BIN                        -->
     <!-- ========================================================================= -->
     <div class="tab-content" id="tabTransfer">
 
-      <!-- Visual Alamat Asal ➔ Alamat Tujuan -->
-      <div class="location-transfer-box">
-        <div class="loc-grid-row">
-          
-          <!-- LOKASI ASAL -->
-          <div class="loc-card" id="cardLocAsal" style="cursor: pointer;">
-            <div class="loc-label">📍 RAK / BIN ASAL</div>
-            <div class="loc-value-box" id="dispBinAsal">A-001-1-001</div>
-            <div class="loc-subtext" id="dispSubAsal">Klik / Scan Lokasi</div>
-          </div>
-
-          <!-- ARROW -->
-          <div class="loc-arrow-icon">➔</div>
-
-          <!-- LOKASI TUJUAN -->
-          <div class="loc-card" id="cardLocTujuan" style="cursor: pointer;">
-            <div class="loc-label">🎯 RAK / BIN TUJUAN</div>
-            <div class="loc-value-box" id="dispBinTujuan">A-001-2-001</div>
-            <div class="loc-subtext" id="dispSubTujuan">Klik / Scan Lokasi</div>
-          </div>
-
+      <!-- PARAMETER PERPINDAHAN BARANG (3 BARIS SESUAI INSTRUKSI BOS) -->
+      <div class="card param-transfer-card" id="cardParamTransfer">
+        <div class="card-header param-card-header">
+          <span>🏢 PARAMETER MUTASI / PERPINDAHAN BARANG</span>
+          <span style="font-size: 0.7rem; color: #0284c7; font-weight: 800;">WMS System</span>
         </div>
+        <div class="card-body param-card-body">
+          <!-- BARIS 1: NO. PDT (KIRI) | PELAKSANA (KANAN) -->
+          <div class="form-grid">
+            <div class="form-group">
+              <label>📟 No. Device / PDT</label>
+              <input type="text" id="inputDevice" class="form-control" value="PDT-01" placeholder="PDT-01">
+            </div>
+            <div class="form-group">
+              <label>👤 Pelaksana (Petugas)</label>
+              <input type="text" id="inputPetugas" class="form-control" value="YONO" placeholder="Nama petugas...">
+            </div>
+          </div>
 
-        <!-- Quick Switch or Select Modal Button -->
-        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.72rem;">
-          <button type="button" class="header-btn" id="btnSwapLocations" style="background: white; color: #0284c7; border-color: #38bdf8;">
-            ⇄ Balik Arah
-          </button>
-          <button type="button" class="header-btn" id="btnOpenBinPicker" style="background: white; color: #0284c7; border-color: #38bdf8;">
-            📋 Pilih dari Master Rak/Bin
-          </button>
+          <!-- BARIS 2: KODE LOKASI ASAL (KIRI) | BIN CODE ASAL (KANAN) -->
+          <div class="form-grid">
+            <div class="form-group" style="position: relative;">
+              <label>📍 Kode Lokasi Asal</label>
+              <input type="text" id="inputLokAsal" class="form-control" value="55022" placeholder="55022...">
+              <div id="badgeLokAsal" class="lok-verified-pill">🏬 55022 - ITX GUDANG NAROGONG</div>
+              <div id="suggestLokAsal" class="suggest-box" style="display: none;"></div>
+            </div>
+            <div class="form-group">
+              <label>📦 Bin Code Asal</label>
+              <div class="loc-card" id="cardLocAsal" style="cursor: pointer;">
+                <div class="loc-value-box" id="dispBinAsal">A-001-1-001</div>
+                <div class="loc-subtext" id="dispSubAsal">Klik / Scan Lokasi</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BARIS 3: LOKASI TERIMA (KIRI) | BIN CODE TERIMA (KANAN) -->
+          <div class="form-grid">
+            <div class="form-group" style="position: relative;">
+              <label>🎯 Lokasi Terima</label>
+              <input type="text" id="inputLokTerima" class="form-control" value="55022" placeholder="55022...">
+              <div id="badgeLokTerima" class="lok-verified-pill">🏬 55022 - ITX GUDANG NAROGONG</div>
+              <div id="suggestLokTerima" class="suggest-box" style="display: none;"></div>
+            </div>
+            <div class="form-group">
+              <label>📥 Bin Code Terima</label>
+              <div class="loc-card" id="cardLocTujuan" style="cursor: pointer;">
+                <div class="loc-value-box" id="dispBinTujuan">A-001-2-001</div>
+                <div class="loc-subtext" id="dispSubTujuan">Klik / Scan Lokasi</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons: Balik Arah & Pilih dari Master Rak -->
+          <div class="param-actions-row">
+            <button type="button" class="header-btn" id="btnSwapLocations">
+              ⇄ Balik Arah
+            </button>
+            <button type="button" class="header-btn" id="btnOpenBinPicker">
+              📋 Pilih dari Master Rak/Bin
+            </button>
+          </div>
         </div>
       </div>
 
