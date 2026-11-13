@@ -58,7 +58,18 @@ body {
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.app-logo-img {
+  height: 28px;
+  width: auto;
+  max-width: 95px;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 2px 4px;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .header-actions {
